@@ -26,3 +26,21 @@ If you need to install the gvm simply run
     # install pre-commit
     pip install pre-commit
     pre-commit install
+
+    # Download all dependencies
+    go mod download
+
+
+### Testing
+
+All test files are named *_test.go. Github workflow automatically run the tests when code is pushed and will return a report with results when finished.
+
+You can also run the tests locally:
+
+    go test ./...
+
+To run the tests with coverage:
+
+    go test -coverprofile=coverage.out ./...
+    go tool cover -html=coverage.out
+
