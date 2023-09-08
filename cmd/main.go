@@ -17,6 +17,7 @@ func main() {
 	// TODO these will be env vars
 	githubService := github.NewGitHubService("GITHUB_TOKEN", "ORG_NAME")
 	slackService := slack.NewSlackService("SLACK_TOKEN", "SLACK_URL")
+	channel := "SLACK_CHANNEL"
 
 	repos, err := githubService.GetRepos(ctx)
 	if err != nil {
@@ -46,7 +47,7 @@ func main() {
 	}
 
 	message := utils.FormatMessage(reviewCounts)
-	if err := slackService.PostMessage(ctx, message); err != nil {
+	if err := slackService.PostMessage(ctx, channel, message); err != nil {
 		log.Fatalf("Error posting to Slack: %v", err)
 	}
 }
