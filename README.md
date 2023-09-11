@@ -20,11 +20,11 @@ A Slack bot used to show who the top reviewers were in GitHub for a given day.
     ```
 
 2. **Set Environment Variables**:
-    This project makes use of a .env file you need to copy .env.example to .env and fill in the values.
-
     ```bash
     cp .env.example .env
     ```
+    This project makes use of a .env file you need to copy .env.example to .env and fill in the values.
+
 
 3. **Build the Project for Quick Use using /cmd**:
     ```bash
