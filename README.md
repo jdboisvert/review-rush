@@ -40,7 +40,8 @@ A Slack bot used to show who the top reviewers were in GitHub for a given day.
     You can skip the build process and run the project directly using `go run ./cmd/main.go` from the root of the project as well. 
 
 5. The application should now be running and posting to Slack as intended!
-   ![image](https://github.com/jdboisvert/review-rush/assets/40838156/335ff0fd-3daf-401f-a1a2-98e5673fb3b3)
+   ![image](https://github.com/jdboisvert/review-rush/assets/40838156/214f2ac2-f9a4-4c51-954c-2e3dfaaef466)
+
 
 ### Development Configuration:
 
