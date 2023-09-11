@@ -12,6 +12,10 @@ type keyValue struct {
 }
 
 func FormatMessage(counts map[string]int) string {
+	if len(counts) == 0 {
+		return "No reviews today :("
+	}
+
 	var sortedSlice []keyValue
 	for key, value := range counts {
 		sortedSlice = append(sortedSlice, keyValue{key, value})

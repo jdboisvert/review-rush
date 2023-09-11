@@ -17,11 +17,10 @@ type SlackService interface {
 type service struct {
 	client *http.Client
 	token  string
-	url    string
 }
 
-func NewSlackService(token, url string) SlackService {
-	return &service{token: token, url: url, client: &http.Client{}}
+func NewSlackService(token string) SlackService {
+	return &service{token: token, client: &http.Client{}}
 }
 
 func (s *service) PostMessage(ctx context.Context, channel, message string) error {
@@ -35,12 +34,12 @@ func (s *service) PostMessage(ctx context.Context, channel, message string) erro
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", slackAPIEndpoint, bytes.NewBuffer(data))
+	req, err := http.NewRequest("POST", slackAPIEndpoint, bytes.NewBuffer(data))
 	if err != nil {
 		return err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", "Bearer "+s.token)
 
 	resp, err := s.client.Do(req)

@@ -29,8 +29,7 @@ func newMockClient(response *http.Response, err error) *http.Client {
 
 func TestNewSlackService(t *testing.T) {
 	token := "testToken"
-	url := "testUrl"
-	slackService := NewSlackService(token, url)
+	slackService := NewSlackService(token)
 
 	impl, ok := slackService.(*service)
 	if !ok {
@@ -39,10 +38,6 @@ func TestNewSlackService(t *testing.T) {
 
 	if impl.token != token {
 		t.Errorf("Expected token '%s', got '%s'", token, impl.token)
-	}
-
-	if impl.url != url {
-		t.Errorf("Expected URL '%s', got '%s'", url, impl.url)
 	}
 
 	if impl.client == nil {
@@ -85,8 +80,6 @@ func TestPostMessage(t *testing.T) {
 	}
 
 	token := "test_token"
-	url := "test_url"
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			resp := &http.Response{
@@ -97,7 +90,6 @@ func TestPostMessage(t *testing.T) {
 			svc := &service{
 				client: client,
 				token:  token,
-				url:    url,
 			}
 
 			err := svc.PostMessage(context.TODO(), "some_channel", "hello")

@@ -23,7 +23,7 @@ func TestFormatMessage(t *testing.T) {
 		{
 			name:     "no users",
 			counts:   map[string]int{},
-			expected: "Code review rankings for today:\n",
+			expected: "No reviews today :(",
 		},
 	}
 
