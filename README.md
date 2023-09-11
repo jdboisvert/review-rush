@@ -11,7 +11,7 @@ A Slack bot used to show who the top reviewers were in GitHub for a given day.
 3. **Slack Channel**: Create a Slack channel to post messages to. [Follow Slack's documentation](https://slack.com/help/articles/201402297-Create-a-channel) to create one.
 4. **GitHub Token**: Obtain a GitHub token to enable fetching data from GitHub. [Follow GitHub's documentation](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) to get one. Ensure it has the following scopes `public_repo, read:project, read:user, repo:status, user:email`. When making this project I simply used a Classic Token.
 
-### Steps to Set Up:
+### Quick Start:
 
 1. **Clone the Repository**:
     ```bash
@@ -20,11 +20,11 @@ A Slack bot used to show who the top reviewers were in GitHub for a given day.
     ```
 
 2. **Set Environment Variables**:
-This project makes use of a .env file you need to copy .env.example to .env and fill in the values.
+    This project makes use of a .env file you need to copy .env.example to .env and fill in the values.
 
-```shell
-cp .env.example .env
-```
+    ```bash
+    cp .env.example .env
+    ```
 
 3. **Build the Project for Quick Use using /cmd**:
     ```bash
