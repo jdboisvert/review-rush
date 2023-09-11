@@ -32,6 +32,6 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
 
-    - name: Run tests in alert-producer
+    - name: Run tests
       run: |
         go test ./...
