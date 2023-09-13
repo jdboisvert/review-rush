@@ -9,7 +9,7 @@ A Slack bot used to show who the top reviewers were in GitHub for a given day.
 1. **Go**: Ensure you have Go installed. [Download and install Go](https://golang.org/dl/).
 2. **Slack Token**: Obtain a Slack token (by creating an app) to enable posting messages. [Follow Slack's documentation](https://api.slack.com/tutorials/tracks/getting-a-token) to get one.
 3. **Slack Channel**: Create a Slack channel to post messages to. [Follow Slack's documentation](https://slack.com/help/articles/201402297-Create-a-channel) to create one.
-4. **GitHub Token**: Obtain a GitHub token to enable fetching data from GitHub. [Follow GitHub's documentation](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) to get one. Ensure it has the following scopes `public_repo, read:project, read:user, repo:status, user:email`. When making this project I simply used a Classic Token.
+4. **GitHub Token**: Obtain a GitHub token to enable fetching data from GitHub. [Follow GitHub's documentation](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) to get one. Ensure it has the following scopes `public_repo, read:project, read:user, repo:status, user:email`. When making this project I simply used a Classic Token. Ideally just using a Fine-grained personal access token would be better since scoping by organization or user would be more secure.
 
 ### Quick Start:
 
@@ -28,13 +28,13 @@ A Slack bot used to show who the top reviewers were in GitHub for a given day.
 3. **Build the Project for Quick Use using /cmd**:
     ```bash
     cd ./cmd
-    go build ..//main.go
+    go build -o ../review-rush.exe
     ```
 
 4. **Run the Built Executable**:
     ```bash
     cd .. # Ensure you are in the root directory of the project
-    ./review-rush
+    ./review-rush.exe
     ```
 
     You can skip the build process and run the project directly using `go run ./cmd/main.go` from the root of the project as well. 
