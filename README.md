@@ -33,7 +33,7 @@ A Slack bot used to show who the top reviewers were in GitHub for a given day.
 
 4. **Run the Built Executable**:
     ```bash
-    cd .. # Ensure you are in the root directory of the project
+    cd ..
     ./review-rush.exe
     ```
 
