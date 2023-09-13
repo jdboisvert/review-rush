@@ -10,6 +10,7 @@ import (
 )
 
 const apiURL = "https://api.github.com"
+const maxPerPage = 100 // GitHub's maximum allowed value per page
 
 type GithubService interface {
 	GetRepos(ctx context.Context) ([]Repository, error)
@@ -32,39 +33,55 @@ func NewGitHubService(token, org string) GithubService {
 }
 
 func (s *service) GetRepos(ctx context.Context) ([]Repository, error) {
-	url, err := s.getRepoUrl(s.org)
+	baseURL, err := s.getRepoUrl(s.org)
 	if err != nil {
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
+	var allRepos []Repository
+	page := 1
+
+	for {
+		url := fmt.Sprintf("%s?page=%d&per_page=%d", baseURL, page, maxPerPage)
+
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		req.Header.Set("Authorization", "Bearer "+s.token)
+		req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
+
+		resp, err := s.client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer resp.Body.Close()
+
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		var repos []Repository
+		if err := json.Unmarshal(body, &repos); err != nil {
+			return nil, err
+		}
+
+		// If we have an empty page, then we've fetched all repositories
+		if len(repos) == 0 {
+			break
+		}
+
+		allRepos = append(allRepos, repos...)
+		page++
 	}
 
-	req.Header.Set("Authorization", "Bearer "+s.token)
-	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
-
-	resp, err := s.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-	var repos []Repository
-	if err := json.Unmarshal(body, &repos); err != nil {
-		return nil, err
-	}
-
-	return repos, nil
+	return allRepos, nil
 }
 
 func (s *service) GetPullRequests(ctx context.Context, repo string) ([]PullRequest, error) {
-	url := fmt.Sprintf("%s/repos/%s/%s/pulls?state=all", apiURL, s.org, repo)
+	url := fmt.Sprintf("%s/repos/%s/%s/pulls?state=all&sort=updated", apiURL, s.org, repo)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -89,7 +106,7 @@ func (s *service) GetPullRequests(ctx context.Context, repo string) ([]PullReque
 		return nil, err
 	}
 
-	return prs, nil
+	return prsFromToday(prs), nil
 }
 
 func (s *service) GetReviews(ctx context.Context, prURL string) ([]Review, error) {
@@ -121,19 +138,36 @@ func (s *service) GetReviews(ctx context.Context, prURL string) ([]Review, error
 	return reviewsFromToday(reviews), nil
 }
 
-func reviewsFromToday(reviews []Review) []Review {
-	// Used to filter out reviews that are not from today
-	// TODO: make this a attribute of the calling function so it can be passed in but for now it's fine.
-	todayReviews := []Review{}
+// Checks if the given time is from today.
+func isFromToday(t time.Time) bool {
 	now := time.Now()
+	return t.Year() == now.Year() && t.Month() == now.Month() && t.Day() == now.Day()
+}
+
+// Used to filter out reviews that are not from today
+// TODO: make this a attribute of the calling function so it can be passed in but for now it's fine.
+func reviewsFromToday(reviews []Review) []Review {
+	todayReviews := []Review{}
 	for _, review := range reviews {
-		if review.SubmittedAt.Year() == now.Year() &&
-			review.SubmittedAt.Month() == now.Month() &&
-			review.SubmittedAt.Day() == now.Day() {
+		if isFromToday(review.SubmittedAt) {
 			todayReviews = append(todayReviews, review)
 		}
 	}
 	return todayReviews
+}
+
+// Used to filter out PRs that are not from today it is assumed that the PRs are sorted by date in descending order
+func prsFromToday(prs []PullRequest) []PullRequest {
+	todayPRs := []PullRequest{}
+	for _, pr := range prs {
+		if isFromToday(pr.UpdatedAt) {
+			todayPRs = append(todayPRs, pr)
+		} else {
+			// If the PR is not from today then we can assume that the rest of the PRs are not from today
+			break
+		}
+	}
+	return todayPRs
 }
 
 func (s *service) getRepoUrl(repo string) (string, error) {

@@ -12,7 +12,8 @@ type Repository struct {
 }
 
 type PullRequest struct {
-	URL string `json:"url"`
+	URL       string    `json:"url"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type Review struct {

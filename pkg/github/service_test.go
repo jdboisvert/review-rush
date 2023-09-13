@@ -12,11 +12,15 @@ import (
 )
 
 type MockTransport struct {
-	Resp *http.Response
-	Err  error
+	Resp     *http.Response
+	Err      error
+	RespFunc func(req *http.Request) *http.Response
 }
 
 func (m *MockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if m.RespFunc != nil {
+		return m.RespFunc(req), m.Err
+	}
 	return m.Resp, m.Err
 }
 
@@ -45,14 +49,28 @@ func TestNewGitHubService(t *testing.T) {
 }
 
 func TestGetRepos(t *testing.T) {
-	responseBody := `[{"id": 1, "name": "repo1"}, {"id": 2, "name": "repo2"}]`
-	mockResp := &http.Response{
-		StatusCode: 200,
-		Body:       io.NopCloser(bytes.NewReader([]byte(responseBody))),
+	firstPage := `[{"id": 1, "name": "repo1"}, {"id": 2, "name": "repo2"}]`
+	secondPage := `[]` // no more repos on the next page
+
+	callCount := 0
+	transport := &MockTransport{
+		RespFunc: func(req *http.Request) *http.Response {
+			callCount++
+			if callCount == 1 {
+				return &http.Response{
+					StatusCode: 200,
+					Body:       io.NopCloser(bytes.NewReader([]byte(firstPage))),
+				}
+			}
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(secondPage))),
+			}
+		},
 	}
 
 	client := &http.Client{
-		Transport: &MockTransport{Resp: mockResp},
+		Transport: transport,
 	}
 
 	service := &service{
@@ -69,10 +87,48 @@ func TestGetRepos(t *testing.T) {
 	if len(repos) != 2 {
 		t.Fatalf("expected 2 repos but got %d", len(repos))
 	}
+
+	if callCount != 2 {
+		t.Fatalf("expected 2 API calls but got %d", callCount)
+	}
 }
 
-func TestGetPullRequests(t *testing.T) {
-	responseBody := `[{"id": 1, "title": "PR1"}, {"id": 2, "title": "PR2"}]`
+func TestGetReposEmpty(t *testing.T) {
+	firstPage := `[]`
+
+	transport := &MockTransport{
+		RespFunc: func(req *http.Request) *http.Response {
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(firstPage))),
+			}
+		},
+	}
+
+	client := &http.Client{
+		Transport: transport,
+	}
+
+	service := &service{
+		client: client,
+		token:  "sample_token",
+		org:    "sample_org",
+	}
+
+	repos, err := service.GetRepos(context.Background())
+	if err != nil {
+		t.Fatalf("expected no error but got: %v", err)
+	}
+
+	if len(repos) != 0 {
+		t.Fatalf("expected 0 repos but got %d", len(repos))
+	}
+}
+
+func TestGetPullRequestsUpdatedToday(t *testing.T) {
+	today := time.Now().Format("2006-01-02")
+
+	responseBody := fmt.Sprintf(`[{"id": 1, "title": "PR1", "updated_at": "%sT12:30:00Z"}, {"id": 2, "title": "PR2", "updated_at": "%sT12:30:00Z"}]`, today, today)
 	mockResp := &http.Response{
 		StatusCode: 200,
 		Body:       io.NopCloser(bytes.NewReader([]byte(responseBody))),
@@ -99,7 +155,7 @@ func TestGetPullRequests(t *testing.T) {
 }
 
 func TestGetReviewsDoneToday(t *testing.T) {
-	today := time.Now().UTC().Format("2006-01-02")
+	today := time.Now().Format("2006-01-02")
 
 	responseBody := fmt.Sprintf(`[{"id": 1, "user": {"login": "user1"}, "submitted_at": "%sT12:30:00Z"}, {"id": 2, "user": {"login": "user2"}, "submitted_at": "%sT13:45:00Z"}]`, today, today)
 	mockResp := &http.Response{
@@ -128,7 +184,7 @@ func TestGetReviewsDoneToday(t *testing.T) {
 }
 
 func TestGetReviewsDoneNotToday(t *testing.T) {
-	yesterday := time.Now().UTC().AddDate(0, 0, -1).Format("2006-01-02")
+	yesterday := time.Now().AddDate(0, 0, -1).Format("2006-01-02")
 
 	responseBody := fmt.Sprintf(`[{"id": 1, "user": {"login": "user1"}, "submitted_at": "%sT12:30:00Z"}, {"id": 2, "user": {"login": "user2"}, "submitted_at": "%sT13:45:00Z"}]`, yesterday, yesterday)
 	mockResp := &http.Response{
