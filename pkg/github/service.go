@@ -81,7 +81,7 @@ func (s *service) GetRepos(ctx context.Context) ([]Repository, error) {
 }
 
 func (s *service) GetPullRequests(ctx context.Context, repo string) ([]PullRequest, error) {
-	url := fmt.Sprintf("%s/repos/%s/%s/pulls?state=all&sort=updated", apiURL, s.org, repo)
+	url := fmt.Sprintf("%s/repos/%s/%s/pulls?state=all&sort=updated&direction=desc", apiURL, s.org, repo)
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
