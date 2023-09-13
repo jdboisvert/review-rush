@@ -21,6 +21,11 @@ func TestFormatMessage(t *testing.T) {
 			expected: "Code review rankings for today:\n\nBob: 5 reviews\nAlice: 3 reviews\n",
 		},
 		{
+			name:     "user with single review",
+			counts:   map[string]int{"Alice": 1},
+			expected: "Code review rankings for today:\n\nAlice: 1 review\n",
+		},
+		{
 			name:     "no users",
 			counts:   map[string]int{},
 			expected: "No reviews today :(",

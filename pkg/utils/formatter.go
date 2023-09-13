@@ -29,7 +29,11 @@ func FormatMessage(counts map[string]int) string {
 	var builder strings.Builder
 	builder.WriteString("Code review rankings for today:\n\n")
 	for _, ranking := range sortedSlice {
-		builder.WriteString(fmt.Sprintf("%s: %d reviews\n", ranking.Key, ranking.Value))
+		reviewWord := "review"
+		if ranking.Value > 1 {
+			reviewWord = "reviews"
+		}
+		builder.WriteString(fmt.Sprintf("%s: %d %s\n", ranking.Key, ranking.Value, reviewWord))
 	}
 
 	return builder.String()
